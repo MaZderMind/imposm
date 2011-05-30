@@ -16,12 +16,15 @@ import re
 import cgi
 import urllib
 
+from . geocouch import GeoCouchDB
 from . postgis import PostGISDB
 from .. mapping import Options
 
 def DB(db_conf):
     if db_conf.name == 'postgis':
         return PostGISDB(db_conf)
+    if db_conf.name == 'geocouch':
+        return GeoCouchDB(db_conf)
     raise ValueError('unknown db: %s' % (db_conf.name,))
 
 def db_conf_from_string(conf, base_db_conf):
