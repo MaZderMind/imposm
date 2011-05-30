@@ -29,7 +29,7 @@ from imposm.mapping import UnionView, GeneralizedTable, Mapping
 class GeoCouchDB(object):
     def __init__(self, db_conf):
         self.db_conf = db_conf
-        self.db_url = 'http://%(host)s:%(port)s/%(db)s/' % db_conf
+        self.db_url = 'http://%(host)s:%(port)s/%(db)s/_bulk_docs' % db_conf
         self._insert_stmts = {}
         self.conn = httplib2.Http()
 
@@ -41,6 +41,7 @@ class GeoCouchDB(object):
     
     def insert(self, mapping, insert_data, tries=0):
         extra_field_names = mapping.extra_field_names()
+        features = []
         for data in insert_data:
             feature = {
                 'osm_id': data[0],
@@ -52,10 +53,12 @@ class GeoCouchDB(object):
             for extra, value in zip(extra_field_names, data[4:]):
                 feature[extra] = value
             
-            body = json.dumps(feature)
-            resp, content = self.conn.request(self.db_url, 'POST', body=body,
-                headers={'content-type': 'application/json'})
-            # TODO check for resp
+            features.append(feature)
+            
+        body = json.dumps({'docs': features})
+        resp, content = self.conn.request(self.db_url, 'POST', body=body,
+            headers={'content-type': 'application/json'})
+        # TODO check for resp
     
     def geom_wrapper(self, geom):
         return geom.__geo_interface__
